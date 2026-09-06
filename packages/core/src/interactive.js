@@ -201,8 +201,16 @@ export function stepSpeechText(step) {
  *
  * Each question type keeps its answer somewhere different — `single` and
  * `background` in `answer`, `number` in `answer` plus optional working `steps`,
- * `multiple` in an `answers` list, and `open` nowhere at all, by design — so
- * this is derived once here rather than re-derived per type at every call site.
+ * the two semi-open types in an `answers` list, and `open` nowhere at all, by
+ * design — so this is derived once here rather than re-derived per type at every
+ * call site.
+ *
+ * `suggested` is what the two semi-open types disagree about. A `multiple`
+ * question's answers are the whole accepted set; a `multiple_open` one's are
+ * examples, and a learner who wrote something else that fits the topic is also
+ * right. Whoever is looking at the reveal is usually the person deciding that,
+ * so the distinction has to travel with the answers rather than being something
+ * they are expected to remember about the question type.
  *
  * Returns null when there is nothing to reveal: an open-ended question, a type
  * we don't know, or one whose author left the answer blank. That is deliberately
@@ -210,7 +218,7 @@ export function stepSpeechText(step) {
  * answer instead of being shown a gap and left wondering.
  *
  * @param {object} block  A question block.
- * @returns {{ answer: string, answers: string[], steps: string[] } | null}
+ * @returns {{ answer: string, answers: string[], steps: string[], suggested: boolean } | null}
  */
 export function questionAnswer(block) {
   if (!isQuestionBlock(block)) return null;
@@ -222,21 +230,32 @@ export function questionAnswer(block) {
       .filter(Boolean);
 
   switch (block.questionType) {
-    case "multiple": {
+    case "multiple":
+    case "multiple_open": {
       const answers = texts(block.answers);
-      return answers.length ? { answer: "", answers, steps: [] } : null;
+      if (!answers.length) return null;
+      return {
+        answer: "",
+        answers,
+        steps: [],
+        suggested: block.questionType === "multiple_open",
+      };
     }
     case "number": {
       // A number question can carry its working with it, and a half-filled one
       // (working but no total, or the reverse) is still worth revealing.
       const answer = trimmed(block.answer);
       const steps = texts(block.steps);
-      return answer || steps.length ? { answer, answers: [], steps } : null;
+      return answer || steps.length
+        ? { answer, answers: [], steps, suggested: false }
+        : null;
     }
     case "single":
     case "background": {
       const answer = trimmed(block.answer);
-      return answer ? { answer, answers: [], steps: [] } : null;
+      return answer
+        ? { answer, answers: [], steps: [], suggested: false }
+        : null;
     }
     default:
       return null;
@@ -248,8 +267,9 @@ export function questionAnswer(block) {
  * reveal puts on screen, in the order it shows them.
  *
  * The types differ in how many there can be, not in kind: a `single`, `number`
- * or `background` question has one answer, a `multiple` one has an accepted
- * answer per entry, and an open-ended question has none. Flattening that here
+ * or `background` question has one answer, a semi-open one has an entry per
+ * accepted (or, for `multiple_open`, suggested) answer, and an open-ended
+ * question has none. Flattening that here
  * rather than at the call site is what lets the reveal draw every answer the
  * same way — one to a box, each its own thing to point at or click — instead of
  * a value for one type and a bullet list for another.

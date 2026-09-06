@@ -28,10 +28,14 @@ editor:
 - **No section headings.** A section's name is an organising device for the
   editor; the printed lesson runs straight through from one block to the next.
 - **Questions marked by colour alone** — the prompt in its type's colour,
-  its answer in black on the same line, with no `[Label]` in front of it.
+  its answer in black on the same line, with no `[Label]` in front of it. The one
+  exception is **Suggested answers**, which shares the amber of **Multiple
+  answers** and is set in italic to separate them (see
+  [Question blocks](./question-blocks.md#the-two-amber-types)).
 - **Spelling words on one running line**, `Spell: FIRST SECOND THIRD`.
 - **A footer on every page**: the copyright line above a legend naming each
-  question type in its own colour, which is what makes the colour coding legible.
+  question type in its own colour — and its own italic, where it has one — which
+  is what makes the colour coding legible.
   [VAKT activities](./vakt-activities.md) are deliberately not in the legend —
   they aren't questions, and their `VAKT:` label already names them.
 - **A page number** in the top right corner.

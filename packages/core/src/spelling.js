@@ -5,7 +5,7 @@
 import { ANSWER_GAP } from "./questions.js";
 
 // Accent colour for the spelling-words block (chip + docx label + left border).
-// Teal, distinct from the six question-type colours in questions.js.
+// Teal, distinct from every question-type colour in questions.js.
 export const SPELLING_COLOR = "#0c8599";
 
 // The label a printed lesson puts in front of the words. They print as one

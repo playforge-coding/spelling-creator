@@ -21,6 +21,8 @@
     "hide": "Hide answers",
     "label": "Answer",
     "labelPlural": "Answers",
+    "labelSuggested": "Suggested answers",
+    "suggestedNote": "Examples, not the only right answers — anything that fits the topic counts.",
     "working": "Working",
     "none": "This question has no set answer.",
     "use": "Put this in your answer",

@@ -222,7 +222,8 @@ function normalizeQuestion(block) {
         ...base,
         answer: typeof block.answer === "string" ? block.answer : "",
       };
-    case "multiple": {
+    case "multiple":
+    case "multiple_open": {
       const answers = (Array.isArray(block.answers) ? block.answers : [])
         .map(normalizeTextItem)
         .filter(Boolean);

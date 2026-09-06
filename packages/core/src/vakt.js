@@ -22,7 +22,7 @@
 
 import { isSafeLink } from "./richText.js";
 
-// The accent colour: a bright, unambiguous red — the one colour the six question
+// The accent colour: a bright, unambiguous red — the one colour the question
 // types and the teal spelling block deliberately leave free, so a regulation
 // break is the thing that jumps off a page of colour-coded prompts. Red at hue 0
 // rather than anything warmer: an orange or an amber would collide with the

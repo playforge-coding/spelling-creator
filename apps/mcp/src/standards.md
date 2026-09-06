@@ -13,12 +13,14 @@ the end.
 2 short paragraphs per section (~60-110 words each). ALL-CAPS words are the harder, less-common
 learning vocabulary — a SEPARATE set of words from the spelling list (below), never overlapping.
 
-PLANT THE ORANGE QUESTIONS' LISTS HERE, before writing any question: each section's prose needs
-TWO explicit "X, Y, and Z" series of 2-4 parallel single-word items ("red-hot rock, choking gas,
-and clouds of ash"; "shaped into tools, blades, and arrowheads"), because those two lists ARE that
-section's two orange questions (see below). Decide the lists first and write the paragraph around
-them — the items must be genuinely parallel, all the same kind of thing, and each one a single
-word.
+PLANT THE ORANGE QUESTIONS' LISTS HERE, before writing any question: the prose needs ONE explicit
+"X, Y, and Z" series of 2-4 parallel single-word items per `multiple` question — TWO by default
+("red-hot rock, choking gas, and clouds of ash"; "shaped into tools, blades, and arrowheads"),
+because those lists ARE that section's orange questions (see below). One fewer for every orange
+slot given to a `multiple_open` question, which retrieves nothing and needs no list at all; a
+section using both slots that way plants none. Decide WHICH TWO QUESTIONS THE SECTION IS ASKING
+before you write the prose, not after, then write the paragraph around whatever lists they need —
+the items must be genuinely parallel, all the same kind of thing, and each one a single word.
 
 Any fact a math question needs must be stated in the passage first. Describe other cultures with
 curiosity, never as strange ("Fascinating Countries", not "Unusual Countries") — this is a hard
@@ -59,10 +61,21 @@ Fill-in-the-blank; the number appears in the passage.
 
 A word problem (see MATH below).
 
-### 6-7 · `multiple` (orange)
+### 6-7 · `multiple` / `multiple_open` (orange)
 
-2 questions, one per list planted in the passage. These are SEMI-OPEN LIST RETRIEVAL, and they are
-the easiest question in the set to fake badly. The pattern:
+2 SEMI-OPEN questions: questions with several known or semi-known answers rooted in the text. Their
+demand sits above a green single fact and below the extended opens, and they run along a spectrum
+from TIGHT to LESS TIGHT — both printed orange, and asked in that order, tighter first.
+
+The two ends are two types, because "answers" means opposite things at each: for `multiple` it is
+the exhaustive accepted set, for `multiple_open` it is a suggestion. Default to two `multiple`
+questions, one per list planted in the passage; reach for `multiple_open` when the question you
+want is genuinely the looser kind, and put it second.
+
+#### `multiple` — the tight end
+
+A finite, known answer set drawn from the text. This is LIST RETRIEVAL, and it is the easiest
+question in the set to fake badly. The pattern:
 
 1. the passage states the list as an explicit series — "The blast sent out red-hot rock, choking
    gas, and clouds of ash";
@@ -95,9 +108,28 @@ Two further limits:
 - no paraphrase — if the passage says "superheated" and "dangerous", then HOT and DEADLY are wrong
   answers, because they aren't the words the passage uses.
 
-Also NOT synonym questions ("give a synonym for X"), and NOT evidence answers phrased as long
-quotations — both ask the speller to hold too much in mind and to spell long strings on a
-letterboard.
+#### `multiple_open` — the less tight end
+
+The answers are bounded by the topic, theme or lesson, but leave ROOM FOR IMPROVISATION: "Give a
+synonym for GRATITUDE", "What is a delta, according to the text?". A tight question can also be
+built without quoting anything at all — "Name a cardinal direction" names a category whose answer
+set the text has established — and that belongs here too when the answers aren't one written list.
+
+THE ANSWER KEY IS A GUIDELINE, NOT A REQUIRED STRING. Write the suggested answers in "answers" as
+usual, but the speller need not produce one of them: any response within the bounds of the topic or
+theme is correct. This is the one place in a lesson where a printed answer is advisory rather than
+authoritative, which is why it is a type of its own — whoever scores the lesson has to be able to
+see which questions it applies to. The lesson prints it in the same orange, in italic.
+
+Because the key is advisory, the tight end's rules do not apply to it: its answers are NOT held to
+the passage (a synonym is by definition not in the text — that is the point of asking for one),
+they need not come from a list, and the prompt blanks nothing out because there is no list behind
+it. Give at least one suggestion, ideally two or three.
+
+What holds at BOTH ends: the answers stay rooted in the lesson — bounded by the passage, topic or
+theme, since an answer with no connection to it is a blue background question — and they stay
+SHORT, ideally one word. No evidence answers phrased as long quotations: they ask the speller to
+hold too much in mind and to spell long strings on a letterboard.
 
 ### 8 · `background` (blue)
 
@@ -150,27 +182,31 @@ in place of the first of them where a section wants the distinction drawn explic
 ## No prompt gives away another question's answer
 
 Within a section, no question's prompt may contain a word another question expects the speller to
-RETRIEVE — that is, a green answer or an orange option. A speller who can read the word off a
-neighbouring prompt is copying, not recalling. Real case: the green question "Which land did cats
+RETRIEVE — that is, a green answer or a `multiple` option. (A `multiple_open` suggestion is not
+retrieval: nobody is asked to remember it, so naming one elsewhere gives nothing away.) A speller
+who can read the word off a neighbouring prompt is copying, not recalling. Real case: the green question "Which land did cats
 reach? -> BRITAIN", followed by a purple prompt reading "...cats reached Britain around the year
 ___", which hands BRITAIN over; the fix was "...reached the British Isles...". Naming an orange
 option in a green prompt does the same thing ("such as Siamese or Persian").
 
 Two things are fine. A prompt may name a topic word whose own question wants a NUMBER back: "more
 than ___ mummies at Bubastis" doesn't help anyone produce BUBASTIS for its own question, and
-scrubbing every such mention makes prompts clumsy for no gain. And a pink prompt may name the
-section's subject even when it is also a green answer, because an extended open exists to make the
-speller talk about that subject — "In your own words, explain how a delta forms" can't avoid DELTA
-without going vague. Everywhere else, a prompt that names another question's recall answer is
-rejected on save; on a pink prompt it is only flagged, so reword it if the naming wasn't necessary.
+scrubbing every such mention makes prompts clumsy for no gain. And a pink or `multiple_open` prompt
+may name the section's subject even when it is also a green answer, because both exist to make the
+speller talk about that word — "In your own words, explain how a delta forms" can't avoid DELTA
+without going vague, and "Give a synonym for DELTA" has to say it outright. Everywhere else, a
+prompt that names another question's recall answer is rejected on save; on those two it is only
+flagged, so reword it if the naming wasn't necessary.
 
 ## One answer word, one question
 
 No answer word may be used by more than one question anywhere in the lesson, at ANY length — not
 just across sections and not only for longer words. A word that is a green answer cannot also be
-an orange option (MAGMA as both); a word cannot be an orange option in two different questions
-(GAS appearing in three sections' orange lists); and a one-word green answer cannot reappear
-inside a longer answer elsewhere. Give every question its own distinct vocabulary. Theme words
+a `multiple` option (MAGMA as both); a word cannot be a `multiple` option in two different
+questions (GAS appearing in three sections' orange lists); and a one-word green answer cannot
+reappear inside a longer answer elsewhere. `multiple_open` suggestions are outside this rule, since
+they are examples rather than the answer to anything. Give every question its own distinct
+vocabulary. Theme words
 that unavoidably recur inside multi-word technical terms ("A SHIELD VOLCANO" and "A
 STRATOVOLCANO") are distinct whole answers and are fine. Numeric answers must all be distinct
 across the lesson too.
@@ -247,35 +283,42 @@ the first section or two, then `patch_lesson` with an `add_section` op for each 
 passing a `summary` that says what the pass added. Each pass is validated, recorded and
 reversible on its own.
 
+Every check below that reads the passage belongs to `multiple`, the TIGHT orange type. None of them
+run on `multiple_open`, whose answers are suggestions — held to the passage or to a list, it would
+be rejected for being exactly what it is meant to be.
+
 Rejected (errors):
 
 - a green (single) answer that does not appear, word for word, in its own section's passage
-- an orange (multiple) accepted answer that does not appear in its own section's passage — the
-  usual causes are paraphrase and general knowledge
-- an orange question whose prompt contains one of its own accepted answers — blank the list out of
-  the sentence you quote
-- an orange question whose accepted answers do not appear together in the passage as one explicit
+- a `multiple` accepted answer that does not appear in its own section's passage — the usual causes
+  are paraphrase and general knowledge (if the question was really a synonym or a definition, it is
+  a `multiple_open` one)
+- a `multiple` question whose prompt contains one of its own accepted answers — blank the list out
+  of the sentence you quote
+- a `multiple` question whose accepted answers do not appear together in the passage as one explicit
   list — the fix is to write the list into the prose, not to reword the question
-- an orange question that accepts only part of the list its passage states (the prose lists three
+- a `multiple` question that accepts only part of the list its passage states (the prose lists three
   things, the question accepts two)
 - a fill-in-the-blank purple answer (a number question with no steps) that is not in the passage
-- a green, orange, purple or blue prompt that names another question's recall answer (a green
-  answer or an orange option) from the same section — rephrase around the word
+- a green, `multiple`, purple or blue prompt that names another question's recall answer (a green
+  answer or a `multiple` option) from the same section — rephrase around the word
 - a blue (background) answer that DOES appear in its own section's passage, or a blue question
   with no "background" field
 - a spelling word outside 6-9 letters, repeated in another section, or appearing inside any answer
 - the same answer word used by two different questions, anywhere, at any length
 - the same numeric answer given by two different questions
-- an open question carrying an answer, answers, or exampleAnswer
+- an open or paraphrase question carrying an answer, answers, or exampleAnswer
 - a pink question using the retired "...one word that comes to mind..." stem
 
 Flagged but allowed (warnings, returned with the saved lesson): a section count other than 6, a
 section with no questions at all, a section whose 15 questions differ in type or order from the
-list above, pink questions that don't read as 4 tight + 3 extended, a multi-word orange answer, an
-orange question with fewer than 2 or more than 4 answers, an orange prompt that doesn't blank out
-the list it is asking about, a section without exactly 4 spelling words, a word problem with no
-steps, a pink prompt that names another question's recall answer, a spelling word that is also
-ALL-CAPS vocabulary in the same section, and a VAKT activity that isn't last in its section.
+list above, pink questions that don't read as 4 tight + 3 extended, a multi-word orange answer, a
+`multiple` question with fewer than 2 or more than 4 answers, a `multiple_open` question suggesting
+no answers at all, a `multiple` prompt that doesn't blank out the list it is asking about, a
+`multiple_open` question asked before a `multiple` one in the same section, a section without
+exactly 4 spelling words, a word problem with no steps, a pink or `multiple_open` prompt that names
+another question's recall answer, a spelling word that is also ALL-CAPS vocabulary in the same
+section, and a VAKT activity that isn't last in its section.
 
 If the user deliberately wants a lesson the standard forbids — a 3-section lesson, questions in a
 different order — pass "skipValidation": true, which turns the errors off. Don't reach for it to
@@ -289,7 +332,10 @@ Things validation cannot decide for you:
 - every green answer is a hard fact with one right answer, not an interpretation the passage
   happened to word that way
 - tight opens are easy everyday recall — not abstract, not vocabulary puzzles, not lesson-dependent
-- each section's prose carries the two genuine lists its orange questions blank out, and the items
+- each section's prose carries a genuine list for every `multiple` question it holds, and the items
   in them are parallel — the same kind of thing, one word each
+- a `multiple_open` question is genuinely the looser kind, not a `multiple` one whose list you
+  couldn't ground: the type is not a way around the checks, and using it that way costs the speller
+  the question
 - anything time-sensitive has been verified
 - the image agrees with the text it sits above

@@ -304,7 +304,7 @@ function readQuestion(nodes, i, { type, prompt, answer }) {
     }
   } else if (type === "single" || type === "background") {
     block.answer = answer;
-  } else if (type === "multiple") {
+  } else if (type === "multiple" || type === "multiple_open") {
     // The exporter joins the accepted answers with a run of spaces, which is the
     // only thing left to split them on. An answer containing a double space
     // would be split in two — a known limit of the lossy DOCX round trip.

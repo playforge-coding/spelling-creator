@@ -1,4 +1,4 @@
-// Shared definitions for the six question types. Imported by the editor
+// Shared definitions for the seven question types. Imported by the editor
 // (SectionCard / ContentBlock) and the exporters so colours, labels, and the
 // default block shape stay in sync everywhere.
 
@@ -27,6 +27,26 @@ export const QUESTION_TYPES = {
     // printed lesson where the colour is the only thing marking the type.
     color: "#d68f00",
   },
+  multiple_open: {
+    key: "multiple_open",
+    label: "Suggested answers",
+    short: "Suggested",
+    description: "Answers bounded by the topic; the key only suggests",
+    // The same amber as `multiple`, because these two are one pedagogical
+    // family — the semi-open questions, which the S2C guidebook describes as a
+    // spectrum from tight (a finite answer set the passage states) to less
+    // tight (bounded by the topic, but open to improvisation), all formatted in
+    // the one colour.
+    color: "#d68f00",
+    // Which leaves nothing to tell them apart where the colour is the only
+    // marking — the printed lesson and its footer legend. So the loose end is
+    // set in italic there. It is not decoration: it is the only thing telling
+    // whoever is scoring that this question's answer key is a SUGGESTION and a
+    // speller who wrote something else may still be right. The remaining hues
+    // are all spoken for (see the note above — the orange next door to amber is
+    // brown's), so the second mark had to be something other than a colour.
+    italic: true,
+  },
   paraphrase: {
     key: "paraphrase",
     label: "Paraphrase",
@@ -52,6 +72,20 @@ export const QUESTION_TYPES = {
 
 export const QUESTION_TYPE_LIST = Object.values(QUESTION_TYPES);
 
+// The two semi-open types, in the order a section asks them (tight first). They
+// share a colour and an `answers` list, and differ in what that list means: for
+// `multiple` it is the complete set of accepted answers, drawn from a list the
+// passage states; for `multiple_open` it is a set of suggestions, and an answer
+// that isn't among them can still be right. Consumers that care about the shape
+// of the block (the editor's answer rows, the exporters) treat them alike;
+// consumers that care about the contract (validation, the answer reveal) don't.
+export const ORANGE_TYPE_KEYS = ["multiple", "multiple_open"];
+
+/** Is this one of the two semi-open (orange) types? */
+export function isOrangeType(questionType) {
+  return ORANGE_TYPE_KEYS.includes(questionType);
+}
+
 // The order the printed footer legend lists the types in: recall first, opening
 // out to free response last. This is a reading order for the legend only — the
 // editor's type picker keeps QUESTION_TYPES' own order.
@@ -60,6 +94,7 @@ export const QUESTION_LEGEND = [
   QUESTION_TYPES.background,
   QUESTION_TYPES.number,
   QUESTION_TYPES.multiple,
+  QUESTION_TYPES.multiple_open,
   QUESTION_TYPES.paraphrase,
   QUESTION_TYPES.open,
 ];
@@ -127,7 +162,7 @@ export function questionAnswerText(block) {
   if (SINGLE_ANSWER_TYPES.has(block.questionType)) {
     return block.answer == null ? "" : String(block.answer).trim();
   }
-  if (block.questionType === "multiple") {
+  if (isOrangeType(block.questionType)) {
     return (block.answers || [])
       .map((a) => (a.text || "").trim())
       .filter(Boolean)
@@ -150,6 +185,7 @@ export function createQuestionBlock(newId, questionType) {
     case "single":
       return { ...base, answer: "" };
     case "multiple":
+    case "multiple_open":
       return { ...base, answers: [{ id: newId(), text: "" }] };
     // Both are free written responses with no stored answer.
     case "paraphrase":
@@ -183,6 +219,7 @@ export function buildQuestionBlock(newId, questionType, data = {}) {
         answer: typeof data.answer === "string" ? data.answer : "",
       };
     case "multiple":
+    case "multiple_open":
       return { ...base, answers: toAnswers(newId, data.answers) };
     case "paraphrase":
     case "open":

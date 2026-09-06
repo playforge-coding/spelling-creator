@@ -97,7 +97,8 @@
       "answerPlaceholderMultiple": "Answer {{number}}",
       "removeAnswer": "Remove answer",
       "addAnswer": "Add answer",
-      "answersHelp": "Type every accepted answer. The student only needs to give one of them to be correct."
+      "answersHelp": "Type every accepted answer. The student only needs to give one of them to be correct.",
+      "suggestedAnswersHelp": "Type a few answers that would count. These are suggestions, not the only right answers — anything that fits the topic is correct."
     },
     "vakt": {
       "badge": "VAKT activity",

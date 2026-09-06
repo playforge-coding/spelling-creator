@@ -376,6 +376,10 @@ A lesson is **sections** of **blocks**. Block types:
   - `single` → `answer` (one text answer)
   - `multiple` → `answers` (array of accepted answers — the items of a list the passage
     states explicitly, with the prompt quoting that sentence with the list blanked out)
+  - `multiple_open` → `answers` (array of **suggested** answers for the looser semi-open
+    question — a synonym, a definition, anything bounded by the topic. The key is a guide,
+    not a match target: the speller need not produce one of them, and the answers are held
+    neither to the passage nor to a list)
   - `paraphrase` → free response restating the passage in the speller's own words
     (no answer field; just the `prompt`)
   - `open` → free response (no answer field; just the `prompt`)

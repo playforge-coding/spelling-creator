@@ -187,7 +187,15 @@ function QuestionBlock({ block }) {
   return (
     <>
       <p>
-        <span className="s2c-label" style={{ "--s2c-label": meta.color }}>
+        <span
+          className="s2c-label"
+          style={{
+            "--s2c-label": meta.color,
+            // The one type that shares its colour with another is set in italic
+            // instead (see questions.js), here as in the export.
+            fontStyle: meta.italic ? "italic" : undefined,
+          }}
+        >
           {block.prompt || t("lessonView.noQuestionText")}
         </span>
         {answer ? `${ANSWER_GAP}${answer}` : null}
