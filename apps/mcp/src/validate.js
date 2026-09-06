@@ -51,6 +51,33 @@ const EXTENDED_OPENS = 3;
 const ORANGE_MIN_ANSWERS = 2;
 const ORANGE_MAX_ANSWERS = 4;
 
+// The two orange types, and the line every check below has to decide which side
+// of it falls on.
+//
+// The guidebook calls both SEMI-OPEN — questions with several known or
+// semi-known answers rooted in the text — and describes them as a spectrum from
+// tight to less tight, all printed orange. They are two types rather than one
+// with a flag because `answers` means opposite things at the two ends:
+//
+//   `multiple`      TIGHT. `answers` is the exhaustive accepted set, and it is
+//                   every item of one explicit list the passage states. Held to
+//                   that hard, because a speller who names the item the question
+//                   left out read the passage exactly as told.
+//   `multiple_open` LESS TIGHT. `answers` is a SUGGESTION. The question is
+//                   bounded by the topic or theme and leaves room to improvise
+//                   ("Give a synonym for gratitude"), so an answer that isn't
+//                   in the key — and by its nature isn't in the passage either —
+//                   can be perfectly right.
+//
+// So every tight-end check below (grounding, the list checks, the blanked
+// prompt) is scoped to `multiple` alone: run against the loose type they would
+// reject exactly the question the standard asks for. What survives both is what
+// the two ends agree on — rooted in the lesson, and short enough to spell on a
+// letterboard.
+const ORANGE_TIGHT = "multiple";
+const ORANGE_LOOSE = "multiple_open";
+const ORANGE_TYPES = new Set([ORANGE_TIGHT, ORANGE_LOOSE]);
+
 // A private stand-in for a decimal point, so the punctuation strip can run
 // without special-casing "." and without keeping sentence-ending full stops.
 const DECIMAL_MARK = "\u0001";
@@ -278,7 +305,7 @@ function spellingWordsOf(blocks) {
 }
 
 function answersOf(block) {
-  if (block?.questionType === "multiple") {
+  if (ORANGE_TYPES.has(block?.questionType)) {
     return (Array.isArray(block.answers) ? block.answers : [])
       .map((a) => (typeof a === "string" ? a : a?.text) || "")
       .map((a) => a.trim())
@@ -377,15 +404,40 @@ export function validateLesson(doc) {
       const answers = answersOf(block);
       const where = `${ctx.label}, question ${qi + 1}`;
 
-      for (const answer of answers) {
-        allAnswers.push({
-          text: answer,
-          norm: normalizeText(answer),
-          questionId,
-          questionType: block.questionType,
-          section: ctx.number,
-          where,
-        });
+      // A loose orange question's answers are suggestions, so they are kept out
+      // of the lesson-wide pools below: a word that merely illustrates what
+      // would count is not "the answer to a question", and blocking a write
+      // because a warm-up word or another question's answer turns up among the
+      // examples would reject a lesson with nothing wrong with it.
+      if (block.questionType !== ORANGE_LOOSE) {
+        for (const answer of answers) {
+          allAnswers.push({
+            text: answer,
+            norm: normalizeText(answer),
+            questionId,
+            questionType: block.questionType,
+            section: ctx.number,
+            where,
+          });
+        }
+      }
+
+      // The one rule both ends of orange agree on. A speller answers by pointing
+      // out letters, so an accepted answer — or, at the loose end, a suggested
+      // one — should be a single word whichever contract it is under.
+      if (ORANGE_TYPES.has(block.questionType)) {
+        for (const answer of answers) {
+          const norm = normalizeText(answer);
+          if (isSingleWord(norm)) continue;
+          warn(
+            "W_ORANGE_MULTIWORD",
+            `${questionId}:${norm}`,
+            ctx.number,
+            `${where}: the answer "${answer}" is more than one word. ` +
+              "Orange answers should be single words — a speller pointing to letters on a letterboard " +
+              "has to spell every one of them.",
+          );
+        }
       }
 
       switch (block.questionType) {
@@ -404,7 +456,27 @@ export function validateLesson(doc) {
           break;
         }
 
-        case "multiple": {
+        // The loose end of orange, and almost nothing to check. Its answer key
+        // is advisory, so it is held neither to the passage (a synonym is not
+        // in the text — that is the point of asking for one) nor to a list (a
+        // definition question has none behind it). Every tight-end check below
+        // would reject exactly the question the standard asks for here. What is
+        // left is that there is a key at all, plus the shared single-word
+        // check above.
+        case ORANGE_LOOSE: {
+          if (answers.length) break;
+          warn(
+            "W_ORANGE_ANSWER_COUNT",
+            questionId,
+            ctx.number,
+            `${where}: this orange (multiple_open) question suggests no answers at all. Give at least one. ` +
+              "The key is a guide rather than a match target — a speller may answer something else and still " +
+              "be right — but an empty one tells whoever is scoring nothing about what would count.",
+          );
+          break;
+        }
+
+        case ORANGE_TIGHT: {
           if (
             answers.length < ORANGE_MIN_ANSWERS ||
             answers.length > ORANGE_MAX_ANSWERS
@@ -419,16 +491,6 @@ export function validateLesson(doc) {
           }
           for (const answer of answers) {
             const norm = normalizeText(answer);
-            if (!isSingleWord(norm)) {
-              warn(
-                "W_ORANGE_MULTIWORD",
-                `${questionId}:${norm}`,
-                ctx.number,
-                `${where}: the accepted answer "${answer}" is more than one word. ` +
-                  "Orange answers should be single words — a speller pointing to letters on a letterboard " +
-                  "has to spell every one of them.",
-              );
-            }
             if (containsPhrase(ctx.passage, norm)) continue;
             if (isSingleWord(norm)) {
               error(
@@ -436,9 +498,12 @@ export function validateLesson(doc) {
                 `${questionId}:${norm}`,
                 ctx.number,
                 `${ctx.label}: the accepted answer "${answer}" does not appear in that section's passage. ` +
-                  "Orange answers must be words the passage actually uses — do not paraphrase (if the text says " +
-                  '"superheated", HOT is not an accepted answer), and do not ask for general knowledge ' +
-                  '("name an ocean" is a blue background question, not an orange one).',
+                  "A `multiple` question retrieves a list the passage states, so its answers must be words the " +
+                  'passage actually uses — do not paraphrase (if the text says "superheated", HOT is not an ' +
+                  'accepted answer), and do not ask for general knowledge ("name an ocean" is a blue background ' +
+                  "question). If you meant to ask for a synonym, a definition, or anything else the speller " +
+                  'supplies in their own words ("Give a synonym for GRATITUDE"), that is the other orange type: ' +
+                  "`multiple_open`, whose answers are suggestions and are not held to the passage.",
               );
             } else {
               error(
@@ -548,7 +613,8 @@ export function validateLesson(doc) {
                 'gas, and clouds of ash"), then quote that sentence with the list blanked out. Do not build the ' +
                 'question out of words that are not a series: "the Pacific Ocean" is one noun phrase, not PACIFIC ' +
                 "and OCEAN. When an orange question is weak the fix is almost always to rewrite the passage, not " +
-                "the question.",
+                "the question. (A question that was never about a list — a synonym, a definition, anything the " +
+                "speller answers in their own words — belongs to the other orange type, `multiple_open`.)",
             );
           }
           break;
@@ -627,15 +693,17 @@ export function validateLesson(doc) {
     // year ___", gives the green answer away. The fix is a rephrasing — "the
     // British Isles".
     //
-    // Only recall answers count, which is why this reads green and orange and
-    // nothing else. A prompt may freely name a topic word whose own question
+    // Only recall answers count, which is why this reads green and TIGHT orange
+    // and nothing else. A prompt may freely name a topic word whose own question
     // wants a number back — "more than ___ mummies at Bubastis" does not help
     // anyone produce BUBASTIS — and circumlocuting every such mention would make
-    // prompts clumsy for no gain.
+    // prompts clumsy for no gain. A loose orange question's suggestions are not
+    // retrieval either: nobody is being asked to remember them, so naming one
+    // elsewhere gives nothing away.
     const recall = [];
     ctx.questions.forEach((block, qi) => {
       const type = block?.questionType;
-      if (type !== "single" && type !== "multiple") return;
+      if (type !== "single" && type !== ORANGE_TIGHT) return;
       for (const answer of answersOf(block)) {
         recall.push({
           answer,
@@ -670,19 +738,32 @@ export function validateLesson(doc) {
         .map((entry) => entry.norm)
         .sort()
         .join("|")}`;
-      // A pink prompt is the one place the leak is not always a defect. An
-      // extended open exists to make the speller talk about the section's
-      // subject, and the section's subject is usually a green answer — "In your
-      // own words, explain how a delta forms" cannot avoid DELTA without
-      // becoming vague. Worth flagging, never worth blocking.
-      if (block.questionType === "open") {
+      // Two prompts are allowed to name the thing they are about, so for them
+      // the leak is not always a defect. An extended open exists to make the
+      // speller talk about the section's subject, and that subject is usually a
+      // green answer — "In your own words, explain how a delta forms" cannot
+      // avoid DELTA without going vague. A loose orange question has the same
+      // problem in a sharper form: "Give a synonym for X" has to say X. Worth
+      // flagging in both cases, never worth blocking.
+      if (
+        block.questionType === "open" ||
+        block.questionType === ORANGE_LOOSE
+      ) {
+        const kind =
+          block.questionType === "open"
+            ? "this pink prompt"
+            : "this orange (multiple_open) prompt";
+        const excuse =
+          block.questionType === "open"
+            ? "Fine when the open question genuinely has to name the section's subject; worth rewording if it doesn't."
+            : 'Fine when the question is about that word ("Give a synonym for X" has to name X); worth ' +
+              "rewording if it isn't.";
         warn(
           "W_ANSWER_REVEALED_OPEN",
           key,
           ctx.number,
-          `${ctx.label}, question ${qi + 1}: this pink prompt names ${named}, so the speller can read that ` +
-            "answer off it. Fine when the open question genuinely has to name the section's subject; worth " +
-            "rewording if it doesn't.",
+          `${ctx.label}, question ${qi + 1}: ${kind} names ${named}, so the speller can read that ` +
+            `answer off it. ${excuse}`,
         );
         return;
       }
@@ -710,14 +791,45 @@ export function validateLesson(doc) {
       );
     } else {
       const shape = ctx.questions.map((q) => q.questionType);
-      if (shape.join(",") !== QUESTION_ORDER.join(",")) {
+      // Either orange type satisfies an orange slot — the standard asks for two
+      // semi-open questions there, not for one of each — so the shapes are
+      // compared with the two folded together and the ordering between them left
+      // to W_ORANGE_ORDER below.
+      const slot = (type) => (ORANGE_TYPES.has(type) ? ORANGE_TIGHT : type);
+      if (shape.map(slot).join(",") !== QUESTION_ORDER.join(",")) {
         warn(
           "W_QUESTION_SHAPE",
           ctx.id,
           ctx.number,
           `${ctx.label} has ${shape.length} question(s) in the order ${shape.join(", ")}. ` +
             `The default is ${QUESTION_ORDER.length}, in this order: ${QUESTION_ORDER.join(", ")} ` +
-            `(3 green, 2 purple, 2 orange, 1 blue, then ${TIGHT_OPENS} tight opens and ${EXTENDED_OPENS} extended opens).`,
+            `(3 green, 2 purple, 2 orange, 1 blue, then ${TIGHT_OPENS} tight opens and ${EXTENDED_OPENS} extended opens). ` +
+            "Either orange type counts towards an orange slot: `multiple` for a list the passage states, " +
+            "`multiple_open` for the looser end.",
+        );
+      }
+
+      // The guidebook orders the semi-open questions TIGHT then LESS TIGHT, so a
+      // section that mixes the two puts `multiple` first. Only a warning, and
+      // only for a genuine inversion: the ordering is a convention about
+      // increasing openness, not a rule about which types a section may hold.
+      const orange = ctx.questions.filter((q) =>
+        ORANGE_TYPES.has(q.questionType),
+      );
+      const firstLoose = orange.findIndex(
+        (q) => q.questionType === ORANGE_LOOSE,
+      );
+      const lastTight = orange.findLastIndex(
+        (q) => q.questionType === ORANGE_TIGHT,
+      );
+      if (firstLoose !== -1 && lastTight > firstLoose) {
+        warn(
+          "W_ORANGE_ORDER",
+          ctx.id,
+          ctx.number,
+          `${ctx.label}: a loose orange question (\`multiple_open\`) comes before a tight one (\`multiple\`). ` +
+            "The two are one family on a spectrum and are asked tight first, so the question retrieving a list " +
+            "the passage states goes ahead of the one the speller answers in their own words.",
         );
       }
 
@@ -835,9 +947,12 @@ export function validateLesson(doc) {
   // One answer word, one question. Whole answers are the unit, so "A SHIELD
   // VOLCANO" and "A STRATOVOLCANO" coexist happily; what this catches is the same
   // standalone word answering twice (GAS in three sections' orange lists), and a
-  // one-word answer reappearing inside a longer one.
+  // one-word answer reappearing inside a longer one. Loose orange questions took
+  // no part in this — their suggestions never entered `allAnswers` — because the
+  // rule is about a word the speller has to produce for exactly one question, and
+  // a suggestion is not one of those.
   const reusable = allAnswers.filter(
-    (a) => a.questionType === "single" || a.questionType === "multiple",
+    (a) => a.questionType === "single" || a.questionType === ORANGE_TIGHT,
   );
   const byAnswer = new Map();
   for (const answer of reusable) {
@@ -945,6 +1060,13 @@ export function validateLesson(doc) {
   };
 }
 
+// The two types that store no answer at all. `paraphrase` is mechanically an
+// `open` question — the speller writes on their own paper either way — so it is
+// held to the same rule: buildBlock drops a stray answer from both, and being
+// told about it is the only thing that stops the model believing the lesson
+// holds an answer it does not.
+const ANSWERLESS_TYPES = new Set(["open", "paraphrase"]);
+
 /**
  * Checks that can only be made against the caller's raw input, because buildBlock
  * drops the offending fields on the way into the doc — an `open` question that
@@ -957,20 +1079,25 @@ export function validateLesson(doc) {
 export function validateInput(entries) {
   const findings = [];
   for (const { block, where, section } of entries) {
-    if (block?.type !== "question" || block.questionType !== "open") continue;
+    if (block?.type !== "question") continue;
+    if (!ANSWERLESS_TYPES.has(block.questionType)) continue;
     const stray = ["answer", "answers", "exampleAnswer"].filter(
       (field) => block[field] != null && block[field] !== "",
     );
     if (!stray.length) continue;
+    const kind =
+      block.questionType === "open"
+        ? "open (pink) question"
+        : "paraphrase (brown) question";
     findings.push({
       level: "error",
       code: "E_OPEN_HAS_ANSWER",
       key: `E_OPEN_HAS_ANSWER:${where}`,
       section: section ?? null,
       message:
-        `${where}: this open (pink) question carries ${stray.map((f) => `\`${f}\``).join(", ")}. ` +
-        "Open questions have no answer of any kind — just the `prompt`. Remove the field, or change the question " +
-        "type to one that does take an answer.",
+        `${where}: this ${kind} carries ${stray.map((f) => `\`${f}\``).join(", ")}. ` +
+        `${block.questionType === "open" ? "Open" : "Paraphrase"} questions have no answer of any kind — just ` +
+        "the `prompt`. Remove the field, or change the question type to one that does take an answer.",
     });
   }
   return findings;

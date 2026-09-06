@@ -45,6 +45,17 @@ describe("questionAnswerText", () => {
     ).toBe(`NEVADA${ANSWER_GAP}ARIZONA`);
   });
 
+  it("prints a multiple_open question's suggestions like any other answers", () => {
+    // On paper the two semi-open types read the same; what marks the loose one
+    // is the italic prompt above the answers, not the answers themselves.
+    expect(
+      questionAnswerText({
+        questionType: "multiple_open",
+        answers: [{ text: "THANKS" }, { text: "APPRECIATION" }],
+      }),
+    ).toBe(`THANKS${ANSWER_GAP}APPRECIATION`);
+  });
+
   it("gives the free-response types nothing to print after the prompt", () => {
     expect(questionAnswerText({ questionType: "open" })).toBe("");
     expect(questionAnswerText({ questionType: "paraphrase" })).toBe("");
@@ -111,9 +122,24 @@ describe("the footer legend", () => {
     );
   });
 
-  it("gives every type a distinct colour, since colour is the only marking", () => {
-    const colors = QUESTION_TYPE_LIST.map((q) => q.color);
-    expect(new Set(colors).size).toBe(colors.length);
+  // Nothing in the printed lesson names a question's type, so two types that
+  // look identical in the legend are two types a reader cannot tell apart. The
+  // marking is the colour plus the italic — `multiple` and `multiple_open`
+  // deliberately share the amber, and the italic is the whole of what separates
+  // an exhaustive answer key from an advisory one on paper.
+  it("gives every type a marking no other type has", () => {
+    const markings = QUESTION_TYPE_LIST.map(
+      (q) => `${q.color}|${q.italic ? "italic" : "upright"}`,
+    );
+    expect(new Set(markings).size).toBe(markings.length);
+  });
+
+  it("sets the one type that shares a colour in italic", () => {
+    expect(QUESTION_TYPES.multiple_open.color).toBe(
+      QUESTION_TYPES.multiple.color,
+    );
+    expect(QUESTION_TYPES.multiple_open.italic).toBe(true);
+    expect(QUESTION_TYPES.multiple.italic).toBeUndefined();
   });
 });
 

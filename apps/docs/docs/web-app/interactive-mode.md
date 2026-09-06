@@ -89,6 +89,11 @@ towards.
   background question, the working steps as well for a number question, and
   every accepted answer for a multiple-answer one. An open-ended question — which
   by design has no author's answer — says so rather than leaving a gap.
+- A **suggested-answers** question labels its reveal as suggestions and says that
+  anything fitting the topic counts. Whoever is looking at the reveal is usually
+  the person deciding whether the learner was right, and for that one type the
+  decision is genuinely theirs: reading three boxes as the only right answers
+  would mark a learner wrong for an answer the question was written to accept.
 - **Every answer gets a box of its own**, so a multiple-answer question shows
   three answers as three things rather than as a bulleted list under one
   heading. They're stacked as equals rather than numbered: any of them is a right

@@ -174,6 +174,7 @@ function questionBlockParagraphs(block) {
       text: block.prompt || "(no question text)",
       style: questionStyleId(meta.key),
       color: hex(meta.color),
+      italics: Boolean(meta.italic),
       size: BODY_SIZE,
     }),
   ];
@@ -388,6 +389,10 @@ function pageFooter(meta) {
         text: type.label.toUpperCase(),
         size: 16,
         color: hex(type.color),
+        // Two types share the amber (see questions.js), so the legend has to
+        // repeat the italic that tells them apart in the body above it —
+        // otherwise it prints the same swatch twice under two names.
+        italics: Boolean(type.italic),
       }),
     );
   });
@@ -420,7 +425,7 @@ function colourCharacterStyles() {
       name: questionStyleName(type.key),
       basedOn: "DefaultParagraphFont",
       quickFormat: false,
-      run: { color: hex(type.color) },
+      run: { color: hex(type.color), italics: Boolean(type.italic) },
     })),
     {
       id: VAKT_STYLE_ID,

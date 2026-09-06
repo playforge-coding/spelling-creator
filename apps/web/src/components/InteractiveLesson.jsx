@@ -332,7 +332,21 @@ function AnswerReveal({ block, className, onUse }) {
       {answers.length > 0 && (
         <div>
           {label(
-            answers.length > 1 ? t("answers.labelPlural") : t("answers.label"),
+            revealed.suggested
+              ? t("answers.labelSuggested")
+              : answers.length > 1
+                ? t("answers.labelPlural")
+                : t("answers.label"),
+          )}
+          {/* Whoever is looking at this reveal is usually the person deciding
+              whether the learner was right, and for a suggested-answers question
+              that decision is theirs to make — so the reveal has to say so.
+              Reading three boxes as the only right answers would mark a learner
+              wrong for an answer the question was written to accept. */}
+          {revealed.suggested && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              {t("answers.suggestedNote")}
+            </p>
           )}
           {/* Any of them is a right answer, so they are stacked as equals rather
               than numbered: a list numbered 1, 2, 3 reads as an order to give

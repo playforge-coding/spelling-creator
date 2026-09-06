@@ -170,7 +170,8 @@ const PRINT_STYLES = `
   }
   ${QUESTION_TYPE_LIST.map(
     (type) =>
-      `.s2c-pdf-root .${questionStyleClass(type.key)} { color: ${type.color}; }`,
+      `.s2c-pdf-root .${questionStyleClass(type.key)} { color: ${type.color};` +
+      `${type.italic ? " font-style: italic;" : ""} }`,
   ).join("\n  ")}
   .s2c-pdf-root .${VAKT_STYLE_CLASS} { color: ${VAKT_COLOR}; }
 `;
@@ -198,16 +199,30 @@ function drawLegend(pdf, centerX, y) {
   const parts = [];
   QUESTION_LEGEND.forEach((type, i) => {
     if (i > 0) parts.push({ text: LEGEND_SEPARATOR, rgb: [110, 110, 110] });
-    parts.push({ text: type.label.toUpperCase(), rgb: hexToRgb(type.color) });
+    parts.push({
+      text: type.label.toUpperCase(),
+      rgb: hexToRgb(type.color),
+      // Two types share the amber, and the italic is what separates them in the
+      // body — so the legend entry has to be set the same way to name them.
+      italic: Boolean(type.italic),
+    });
   });
 
-  const total = parts.reduce((sum, p) => sum + pdf.getTextWidth(p.text), 0);
+  // Measured with each part's own face selected: an italic entry is not the
+  // same width as the upright one, and the line is centred on the total.
+  const width = (part) => {
+    pdf.setFont("helvetica", part.italic ? "italic" : "normal");
+    return pdf.getTextWidth(part.text);
+  };
+  const total = parts.reduce((sum, p) => sum + width(p), 0);
   let x = centerX - total / 2;
   for (const part of parts) {
     pdf.setTextColor(part.rgb[0], part.rgb[1], part.rgb[2]);
+    pdf.setFont("helvetica", part.italic ? "italic" : "normal");
     pdf.text(part.text, x, y);
     x += pdf.getTextWidth(part.text);
   }
+  pdf.setFont("helvetica", "normal");
 }
 
 // The page number (top right) and the footer, on every page — the furniture

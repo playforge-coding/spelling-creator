@@ -505,6 +505,151 @@ test("an orange question outside 2-4 answers warns without blocking", () => {
   assert.deepEqual(codes(warnings), ["W_ORANGE_ANSWER_COUNT"]);
 });
 
+// --- The loose end of orange ------------------------------------------------
+//
+// `multiple_open` exists because the tight checks above would reject the
+// question the standard asks for: a synonym is not in the passage, and a
+// definition has no list behind it. So the cases worth having are mostly proof
+// that each of those checks stays quiet — a false positive here doesn't merely
+// annoy, it forbids a type the guidebook endorses.
+
+// Turn a section's second orange question into the loose kind, which is where
+// the standard puts it when a section has one.
+function looseOrange(input, sectionIndex, { prompt, answers }) {
+  const block = question(input, sectionIndex, 6);
+  block.questionType = "multiple_open";
+  block.prompt = prompt;
+  block.answers = answers;
+  return block;
+}
+
+test("a loose orange question is held to none of the tight end's rules", () => {
+  const { errors, warnings } = check((input) => {
+    // Every tight check at once: answers nowhere in the passage, never a list,
+    // no blank in the prompt, and the prompt naming a suggestion outright.
+    looseOrange(input, 0, {
+      prompt: "Give a synonym for 'flowing'.",
+      answers: ["streaming", "running", "flowing"],
+    });
+  });
+  assert.deepEqual(codes(errors), []);
+  assert.deepEqual(codes(warnings), []);
+});
+
+test("a loose orange suggestion may repeat a word another question answers", () => {
+  const { errors, warnings } = check((input) => {
+    // GRAVEL is section 1's first green answer. As a suggestion it is not
+    // something the speller has to produce, so it collides with nothing.
+    looseOrange(input, 0, {
+      prompt: "Name something a river might carry.",
+      answers: ["gravel", "driftwood"],
+    });
+  });
+  assert.deepEqual(codes(errors), []);
+  assert.deepEqual(codes(warnings), []);
+});
+
+test("a loose orange suggestion may repeat a spelling word", () => {
+  const { errors } = check((input) => {
+    // MEANDER is one of section 1's warm-up words. The warm-up can't give away
+    // an answer the speller was never required to give.
+    looseOrange(input, 0, {
+      prompt: "Give another word for a river's bend.",
+      answers: ["meander", "curve"],
+    });
+  });
+  assert.deepEqual(codes(errors), []);
+});
+
+test("a loose orange prompt naming another question's answer only warns", () => {
+  const { errors, warnings } = check((input) => {
+    // DELTA is section 1's third green answer, and a synonym question about it
+    // has to say the word. Worth flagging, never worth blocking.
+    looseOrange(input, 0, {
+      prompt: "In the text's own words, what is a delta?",
+      answers: ["mouth", "fan"],
+    });
+  });
+  assert.deepEqual(codes(errors), []);
+  assert.deepEqual(codes(warnings), ["W_ANSWER_REVEALED_OPEN"]);
+  assert.match(warnings[0].message, /multiple_open/);
+  assert.match(warnings[0].message, /has to name X/);
+});
+
+test("a loose orange answer still has to be short enough to spell", () => {
+  const { errors, warnings } = check((input) => {
+    looseOrange(input, 0, {
+      prompt: "Give a synonym for 'flowing'.",
+      answers: ["moving along steadily"],
+    });
+  });
+  assert.deepEqual(codes(errors), []);
+  assert.deepEqual(codes(warnings), ["W_ORANGE_MULTIWORD"]);
+});
+
+test("a loose orange question with no suggestions at all warns", () => {
+  // buildDoc rejects an empty `answers` array outright, so this is emptied on
+  // the built document: the case that reaches validateLesson for real is a
+  // lesson written in the web editor whose answer rows are all blank.
+  const input = lessonInput();
+  looseOrange(input, 0, {
+    prompt: "Give a synonym for 'flowing'.",
+    answers: ["streaming"],
+  });
+  const doc = buildDoc(input);
+  doc.sections[0].blocks.find(
+    (b) => b.questionType === "multiple_open",
+  ).answers = [];
+  const { errors, warnings } = validateLesson(doc);
+  assert.deepEqual(codes(errors), []);
+  assert.deepEqual(codes(warnings), ["W_ORANGE_ANSWER_COUNT"]);
+  assert.match(warnings[0].message, /suggests no answers/);
+});
+
+test("either orange type fills an orange slot, but the tight one goes first", () => {
+  const second = check((input) => {
+    looseOrange(input, 0, {
+      prompt: "Give a synonym for 'flowing'.",
+      answers: ["streaming"],
+    });
+  });
+  assert.deepEqual(codes(second.warnings), []);
+
+  // The same two questions the other way round: still a valid section, still
+  // 15 questions in the right slots, but asked loose-then-tight.
+  const inverted = check((input) => {
+    const [tight, loose] = [question(input, 0, 5), question(input, 0, 6)];
+    loose.questionType = "multiple_open";
+    loose.prompt = "Give a synonym for 'flowing'.";
+    loose.answers = ["streaming"];
+    input.sections[0].blocks = input.sections[0].blocks.map((block) =>
+      block === tight ? loose : block === loose ? tight : block,
+    );
+  });
+  assert.deepEqual(codes(inverted.errors), []);
+  assert.deepEqual(codes(inverted.warnings), ["W_ORANGE_ORDER"]);
+});
+
+test("a paraphrase question carrying an answer is rejected from the raw input", () => {
+  // Mechanically identical to `open`: buildBlock drops the field, so without
+  // this the model is left believing the lesson holds an answer it does not.
+  const findings = validateInput([
+    {
+      block: {
+        type: "question",
+        questionType: "paraphrase",
+        prompt: "In your own words, explain how a delta forms.",
+        exampleAnswer: "The river drops its sediment.",
+      },
+      where: "Section 1, block 9",
+      section: 1,
+    },
+  ]);
+  assert.deepEqual(codes(findings), ["E_OPEN_HAS_ANSWER"]);
+  assert.match(findings[0].message, /paraphrase \(brown\) question/);
+  assert.match(findings[0].message, /`exampleAnswer`/);
+});
+
 test("the fill-in-the-blank number must be in the passage; the word problem need not be", () => {
   const stray = check((input) => {
     question(input, 0, 3).answer = 41; // no steps, so it is the fill-in-the-blank

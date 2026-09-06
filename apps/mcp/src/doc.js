@@ -2,7 +2,7 @@
 // the tools accept. The Worker stores `doc` verbatim and the web editor renders
 // it, so the shapes here must match the editor's exactly. They are kept in sync
 // with:
-//   • packages/core/src/questions.js  (question block shapes, the six types)
+//   • packages/core/src/questions.js  (question block shapes, the seven types)
 //   • packages/core/src/spelling.js   (spelling block shape)
 //   • packages/core/src/vakt.js       (VAKT activity block shape)
 //   • packages/core/src/id.js         (id generation)
@@ -27,6 +27,7 @@ export const QUESTION_TYPES = [
   "number",
   "single",
   "multiple",
+  "multiple_open",
   "paraphrase",
   "open",
   "background",
@@ -166,14 +167,19 @@ function buildQuestionBlock(block, where) {
       }
       return { ...base, answer: block.answer };
 
-    case "multiple": {
+    // The two semi-open types store the same thing and mean different things by
+    // it — an exhaustive accepted set for `multiple`, a set of suggestions for
+    // `multiple_open` — which is decided in validate.js, not here. The block
+    // shape is identical.
+    case "multiple":
+    case "multiple_open": {
       const raw = Array.isArray(block.answers) ? block.answers : [];
       const answers = raw
         .filter((t) => typeof t === "string" && t.trim())
         .map((text) => ({ id: newId(), text: text.trim() }));
       if (answers.length === 0) {
         throw new Error(
-          `${where}: a multiple-answer question needs a non-empty "answers" array of strings.`,
+          `${where}: a ${questionType} question needs a non-empty "answers" array of strings.`,
         );
       }
       return { ...base, answers };

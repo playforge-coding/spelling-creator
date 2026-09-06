@@ -35,7 +35,7 @@ import {
 import { newId } from "@spelling-creator/core/id";
 import { cn } from "../lib/utils.js";
 import { useImageSrc } from "../lib/useImageSrc.js";
-import { questionMeta } from "@spelling-creator/core/questions";
+import { isOrangeType, questionMeta } from "@spelling-creator/core/questions";
 import { SPELLING_COLOR } from "@spelling-creator/core/spelling";
 import {
   VAKT_COLOR,
@@ -883,7 +883,7 @@ function QuestionBlock({ block, onChange, controls, questionNumber = null }) {
             </Field>
           )}
 
-          {block.questionType === "multiple" && (
+          {isOrangeType(block.questionType) && (
             <div className="mt-3 flex flex-col gap-2">
               {answers.map((ans, i) => (
                 <div key={ans.id} className="flex items-center gap-1">
@@ -918,7 +918,13 @@ function QuestionBlock({ block, onChange, controls, questionNumber = null }) {
                 </Button>
               </div>
               <p className="text-xs text-muted-foreground">
-                {t("contentBlock.question.answersHelp")}
+                {/* The two types take the same rows and mean different things by
+                    them, so the help text under them is what says which. */}
+                {t(
+                  block.questionType === "multiple_open"
+                    ? "contentBlock.question.suggestedAnswersHelp"
+                    : "contentBlock.question.answersHelp",
+                )}
               </p>
             </div>
           )}

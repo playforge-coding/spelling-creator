@@ -87,10 +87,13 @@ const blockSchema = z
       .enum(QUESTION_TYPES)
       .optional()
       .describe(
-        'For type "question": number (numeric answer), single (one text answer), multiple (several accepted ' +
-          "answers), paraphrase (restate the passage in their own words — no stored answer), open (free " +
-          "response), background (needs prior knowledge). Every answer except a background " +
-          "one must appear, word for word, in that section's own passage; a background answer must NOT. A single " +
+        'For type "question": number (numeric answer), single (one text answer), multiple (the items of a list ' +
+          "the passage states — every accepted answer), multiple_open (the looser semi-open question: a synonym, " +
+          "a definition, anything bounded by the topic, whose answers are SUGGESTIONS the speller need not " +
+          "match), paraphrase (restate the passage in their own words — no stored answer), open (free " +
+          "response), background (needs prior knowledge). Every answer except a background one and a " +
+          "multiple_open suggestion must appear, word for word, in that section's own passage; a background " +
+          "answer must NOT. A single " +
           "(green) answer must also be a HARD FACT with one right answer — being in the passage is not enough. " +
           '"What was the goddess called? → BASTET" is a fact; "What is a cat called when it purrs on a lap? → ' +
           'COMPANION" is interpretation, because pet, friend and lap-cat are all just as fair and COMPANION only ' +
@@ -108,6 +111,8 @@ const blockSchema = z
         'For type "question": the question text. A "multiple" (orange) prompt quotes the passage sentence ' +
           'holding its list with the list BLANKED OUT — "The blast sent out ______. Name one thing the eruption ' +
           'threw out." — never with the list spelled out, which hands the answer over and is rejected on save. ' +
+          'A "multiple_open" prompt names the category or the word instead ("Give a synonym for GRATITUDE", ' +
+          '"What is a delta, according to the text?"); it blanks nothing out, because there is no list behind it. ' +
           "No prompt may name a word another question in the same section expects the speller to retrieve (a green " +
           'answer or an orange option): a green answer of BRITAIN and a later prompt reading "…cats reached ' +
           'Britain around the year ___" gives the green answer away, and is fixed by writing "the British Isles". ' +
@@ -121,14 +126,20 @@ const blockSchema = z
       .array(z.string())
       .optional()
       .describe(
-        'Accepted answers for a "multiple" (orange) question: 2-4 of them, each a SINGLE WORD appearing verbatim ' +
-          "in that section's passage. Orange questions are list retrieval, so the answers must be the items of an " +
-          'explicit list the passage states — write "The blast sent out red-hot rock, choking gas, and clouds of ' +
-          'ash" into the prose, then accept ROCK, GAS, ASH. Answers that never appear together as a list are ' +
-          'rejected: "the Pacific Ocean" is one noun phrase, not PACIFIC and OCEAN. Don\'t paraphrase (if the ' +
-          'text says "superheated", HOT is not an accepted answer), don\'t ask general knowledge ("name an ocean" ' +
-          "is a background question), and don't use long evidence phrases — a speller pointing at a letterboard " +
-          "has to spell every word.",
+        "The answers for the two orange (semi-open) types, which mean different things by them.\n\n" +
+          'For "multiple" (the TIGHT end): the accepted answers, 2-4 of them, each a SINGLE WORD appearing ' +
+          "verbatim in that section's passage. This is list retrieval, so they must be EVERY item of an explicit " +
+          'list the passage states — write "The blast sent out red-hot rock, choking gas, and clouds of ash" into ' +
+          "the prose, then accept ROCK, GAS, ASH. Answers that never appear together as a list are rejected: " +
+          '"the Pacific Ocean" is one noun phrase, not PACIFIC and OCEAN. Don\'t paraphrase (if the text says ' +
+          '"superheated", HOT is not an accepted answer) and don\'t ask general knowledge ("name an ocean" is a ' +
+          "background question).\n\n" +
+          'For "multiple_open" (the LESS TIGHT end): SUGGESTED answers — a guide for whoever is scoring, not a ' +
+          "match target. The speller need not produce one of them; any response within the bounds of the topic or " +
+          "theme is right. They are not held to the passage (a synonym by definition isn't in it) and need not " +
+          "come from a list. Give at least one, ideally two or three.\n\n" +
+          "Either way keep them SHORT, ideally one word — a speller pointing at a letterboard has to spell every " +
+          "word, so no long evidence phrases or quotations.",
       ),
     steps: z
       .array(z.string())
@@ -194,9 +205,10 @@ const sectionSchema = z.object({
         "then a spelling block of 4 words (6-9 letters, thematically related but NOT drawn " +
         "from the passage's ALL-CAPS vocabulary), then 15 question blocks about THIS " +
         "section's content, in this fixed order: 3 single, 1 number (fill-in-the-blank), " +
-        "1 number (word problem, with steps), 2 multiple (one per planted list, 2-4 " +
-        "single-word answers each), 1 background, 4 open (tight — easy everyday one-word " +
-        "answers), 3 open (extended — full-sentence answers). Every section ends " +
+        "1 number (word problem, with steps), 2 orange (default: 2 multiple, one per " +
+        "planted list, 2-4 single-word answers each — a multiple_open may take either " +
+        "slot, tighter question first), 1 background, 4 open (tight — easy everyday " +
+        "one-word answers), 3 open (extended — full-sentence answers). Every section ends " +
         "with its own questions — do not collect them into a separate quiz section at the end.",
     ),
 });
@@ -895,7 +907,8 @@ export function registerTools(server, ctx) {
         "(generating all ids) and saves it. Defaults to a private DRAFT — set published: true to share it on the " +
         "public hub. Returns the new lesson id and its hub URL.\n\n" +
         "A lesson is sections of blocks. Block types: text (prose — put words being taught in ALL CAPS), " +
-        "spelling (an explicit word list), question (number/single/multiple/open/background), image, and vakt " +
+        "spelling (an explicit word list), question " +
+        "(number/single/multiple/multiple_open/paraphrase/open/background), image, and vakt " +
         "(a regulation activity — OPTIONAL, only when the user asks for them, and last in its section).\n\n" +
         "DEFAULT STRUCTURE (unless the user asks otherwise): 6 sections; each section is [image?] + 2 text " +
         "paragraphs + 4 spelling words + 15 questions, and ENDS with those question blocks about that section. " +
@@ -974,7 +987,8 @@ export function registerTools(server, ctx) {
         "document”). Use this when you can't (or don't want to) publish to the hub; use create_lesson when you " +
         "want it saved to the cloud directly.\n\n" +
         "A lesson is sections of blocks. Block types: text (prose — put words being taught in ALL CAPS), spelling (an " +
-        "explicit word list), question (number/single/multiple/open/background), image, and vakt (a regulation " +
+        "explicit word list), question (number/single/multiple/multiple_open/paraphrase/open/background), image, " +
+        "and vakt (a regulation " +
         "activity — OPTIONAL, only when the user asks for them, and last in its section). DEFAULT STRUCTURE " +
         "(unless asked otherwise): 6 sections; each is [image?] + 2 text paragraphs + 4 spelling words + 15 " +
         "questions, and ENDS with those question blocks about that section. Same full authoring standard as " +

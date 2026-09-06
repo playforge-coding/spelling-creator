@@ -174,14 +174,19 @@ describe("questionAnswer", () => {
         questionType: "single",
         answer: " Italy ",
       }),
-    ).toEqual({ answer: "Italy", answers: [], steps: [] });
+    ).toEqual({ answer: "Italy", answers: [], steps: [], suggested: false });
     expect(
       questionAnswer({
         type: "question",
         questionType: "background",
         answer: "Tectonic plates",
       }),
-    ).toEqual({ answer: "Tectonic plates", answers: [], steps: [] });
+    ).toEqual({
+      answer: "Tectonic plates",
+      answers: [],
+      steps: [],
+      suggested: false,
+    });
   });
 
   it("reads a number question's answer and its working", () => {
@@ -192,7 +197,12 @@ describe("questionAnswer", () => {
         answer: "12",
         steps: [{ text: "4 × 3" }, { text: "  " }],
       }),
-    ).toEqual({ answer: "12", answers: [], steps: ["4 × 3"] });
+    ).toEqual({
+      answer: "12",
+      answers: [],
+      steps: ["4 × 3"],
+      suggested: false,
+    });
   });
 
   it("reveals working even when the total was left blank", () => {
@@ -202,7 +212,12 @@ describe("questionAnswer", () => {
         questionType: "number",
         steps: [{ text: "Count the syllables" }],
       }),
-    ).toEqual({ answer: "", answers: [], steps: ["Count the syllables"] });
+    ).toEqual({
+      answer: "",
+      answers: [],
+      steps: ["Count the syllables"],
+      suggested: false,
+    });
   });
 
   it("reads every accepted answer of a multiple question", () => {
@@ -212,7 +227,29 @@ describe("questionAnswer", () => {
         questionType: "multiple",
         answers: [{ text: "lava" }, { text: "" }, { text: "magma" }],
       }),
-    ).toEqual({ answer: "", answers: ["lava", "magma"], steps: [] });
+    ).toEqual({
+      answer: "",
+      answers: ["lava", "magma"],
+      steps: [],
+      suggested: false,
+    });
+  });
+
+  it("marks a multiple_open question's answers as suggestions", () => {
+    // The flag is what the reveal labels, and what stops whoever is scoring
+    // reading three examples as the only right answers.
+    expect(
+      questionAnswer({
+        type: "question",
+        questionType: "multiple_open",
+        answers: [{ text: "thanks" }, { text: "appreciation" }],
+      }),
+    ).toEqual({
+      answer: "",
+      answers: ["thanks", "appreciation"],
+      steps: [],
+      suggested: true,
+    });
   });
 
   it("has nothing to reveal for an open question, a blank one, or a non-question", () => {
