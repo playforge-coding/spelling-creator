@@ -13,13 +13,14 @@ the end.
 2 short paragraphs per section (~60-110 words each). ALL-CAPS words are the harder, less-common
 learning vocabulary — a SEPARATE set of words from the spelling list (below), never overlapping.
 
-PLANT THE ORANGE QUESTIONS' LISTS HERE, before writing any question: each section's prose needs
-TWO explicit "X, Y, and Z" series of 2-4 parallel single-word items ("red-hot rock, choking gas,
-and clouds of ash"; "shaped into tools, blades, and arrowheads"), because those two lists ARE that
-section's two orange questions (see below). Decide the lists first and write the paragraph around
-them — the items must be genuinely parallel, all the same kind of thing, and each one a single
-word. (A section that gives one of its orange slots to a `multiple_open` question needs only one
-list, since that type retrieves nothing — but decide that before writing the prose, not after.)
+PLANT THE ORANGE QUESTIONS' LISTS HERE, before writing any question: the prose needs ONE explicit
+"X, Y, and Z" series of 2-4 parallel single-word items per `multiple` question — TWO by default
+("red-hot rock, choking gas, and clouds of ash"; "shaped into tools, blades, and arrowheads"),
+because those lists ARE that section's orange questions (see below). One fewer for every orange
+slot given to a `multiple_open` question, which retrieves nothing and needs no list at all; a
+section using both slots that way plants none. Decide WHICH TWO QUESTIONS THE SECTION IS ASKING
+before you write the prose, not after, then write the paragraph around whatever lists they need —
+the items must be genuinely parallel, all the same kind of thing, and each one a single word.
 
 Any fact a math question needs must be stated in the passage first. Describe other cultures with
 curiosity, never as strange ("Fascinating Countries", not "Unusual Countries") — this is a hard

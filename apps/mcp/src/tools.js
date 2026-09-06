@@ -201,7 +201,9 @@ const sectionSchema = z.object({
       "The blocks in this section, in order. By default a section is: an optional image " +
         "block first (see the image tool note above), then TWO text paragraphs (ALL-CAPS " +
         "words = the harder learning vocabulary, kept separate from the spelling list, and " +
-        'TWO explicit "X, Y, and Z" lists planted for the orange questions to retrieve), ' +
+        'one explicit "X, Y, and Z" list planted for each `multiple` question to retrieve — ' +
+        "TWO by default, one fewer for every orange slot given to a `multiple_open` question, " +
+        "which retrieves nothing), " +
         "then a spelling block of 4 words (6-9 letters, thematically related but NOT drawn " +
         "from the passage's ALL-CAPS vocabulary), then 15 question blocks about THIS " +
         "section's content, in this fixed order: 3 single, 1 number (fill-in-the-blank), " +
@@ -915,8 +917,9 @@ export function registerTools(server, ctx) {
         "Put questions after EVERY section — do NOT gather them into a single quiz section at the end. Honour the " +
         "user when they request a different length, more/fewer questions, or a specific shape.\n\n" +
         "Lessons are written for spellers who answer by pointing to letters on a letterboard, so answers must be " +
-        "short and unambiguous, and every answer except the background one must be findable in that section's own " +
-        "passage. Writes are validated against the standard below: grounding, spelling-word and uniqueness failures " +
+        "short and unambiguous, and every answer must be findable in that section's own passage — except a " +
+        "background one, which must NOT be, and a multiple_open one, whose answers are only suggestions and are " +
+        "not held to the passage. Writes are validated against the standard below: grounding, spelling-word and uniqueness failures " +
         "are REJECTED with a message naming the section, the offending value and the fix — read it and resubmit.\n\n" +
         "Don't compose all six sections blind and hope. Check your work with validate_lesson as you go — it runs " +
         "these same checks without saving anything — and call this once it comes back clean. For a long lesson you " +
